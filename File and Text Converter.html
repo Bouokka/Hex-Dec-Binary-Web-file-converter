@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>File Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        h1 {
+            color: #62929a;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .converter-box {
+            border: 2px solid #62929a;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #fileInput {
+            display: none;
+        }
+        #importButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #62929a;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #resultTextarea {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+            padding: 10px;
+            resize: vertical;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        select.dark-mode{
+            background-color: #222;
+            color: #fff;}
+        #convertButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #62929a;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #dropZone {
+            border: 2px dashed #62929a;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        #resultTextarea.dark-mode {
+            background-color: #222;
+            color: #fff;
+        }
+    .darkModeToggleLabel {
+        color: #fff;
+        font-size: 16px;
+    }
+
+    .darkModeToggle {
+        --toggle-size: 16px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 2.5em;
+        height: 2.5em;
+        background: -webkit-gradient(linear, left top, right top, color-stop(50%, #efefef), color-stop(50%, #2a2a2a)) no-repeat;
+        background: -o-linear-gradient(left, #efefef 50%, #2a2a2a 50%) no-repeat;
+        background: linear-gradient(to right, #efefef 50%, #2a2a2a 50%) no-repeat;
+        background-size: 205%;
+        background-position: 0;
+        -webkit-transition: 0.4s;
+        -o-transition: 0.4s;
+        transition: 0.4s;
+        border-radius: 99em;
+        position: relative;
+        cursor: pointer;
+        font-size: var(--toggle-size);
+    }
+
+    .darkModeToggle::before {
+        content: "";
+        width: 2.25em;
+        height: 2.25em;
+        position: absolute;
+        top: 0.438em;
+        left: 0.438em;
+        background: -webkit-gradient(linear, left top, right top, color-stop(50%, #efefef), color-stop(50%, #2a2a2a)) no-repeat;
+        background: -o-linear-gradient(left, #efefef 50%, #2a2a2a 50%) no-repeat;
+        background: linear-gradient(to right, #efefef 50%, #2a2a2a 50%) no-repeat;
+        background-size: 205%;
+        background-position: 100%;
+        border-radius: 50%;
+        -webkit-transition: 0.4s;
+        -o-transition: 0.4s;
+        transition: 0.4s;
+    }
+
+    .darkModeToggle:checked::before {
+        left: calc(100% - 2.25em - 0.438em);
+        background-position: 0;
+    }
+
+    .darkModeToggle:checked {
+        background-position: 100%;
+    }
+    .darkModeContainer {
+    position: absolute;
+    top: 10px; /* Adjust the top distance as needed */
+    right: 10px; /* Adjust the right distance as needed */
+    z-index: 1;}
+    </style>
+</head>
+<body>
+    <h1>File Converter</h1>
+    <div class="darkModeContainer">
+    <label for="darkModeToggle"></label>
+    <input type="checkbox" id="darkModeToggle" class="darkModeToggle">
+</div>
+    <div class="container">
+    </div>
+    <div class="container">
+        <div class="converter-box">
+            <label for="fileInput" id="importButton">Import File</label>
+            <input type="file" id="fileInput" accept=".html, .txt, .csv, .xml, .json, .hex">
+            <div id="dropZone">Drop File Here</div>
+            <label for="fileConversionType">Choose File Conversion Type:</label>
+            <select id="fileConversionType">
+                <option value="hexadecimal">Hexadecimal</option>
+                <option value="decimal">Decimal</option>
+                <option value="binary">Binary</option>
+                <!-- Add more file conversion types here -->
+            </select>
+            <button id="convertButton">Convert</button>
+        </div>
+        <textarea id="resultTextarea" readonly></textarea>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const resultTextarea = document.getElementById("resultTextarea");
+            const conversionTypeSelect = document.getElementById("fileConversionType");
+            body.classList.toggle("dark-mode");
+            resultTextarea.classList.toggle("dark-mode");
+            conversionTypeSelect.classList.toggle("dark-mode");
+        }
+
+        // Event listener for dark mode toggle
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        darkModeToggle.addEventListener("change", toggleDarkMode);
+        // Event listener for "Convert" button (file)
+        document.getElementById("convertButton").addEventListener("click", function() {
+            const fileInput = document.getElementById("fileInput");
+            const resultTextarea = document.getElementById("resultTextarea");
+            const fileConversionType = document.getElementById("fileConversionType").value;
+
+            if (fileInput.files.length === 0) {
+                resultTextarea.value = "Please select a file to convert.";
+                return;
+            }
+
+            const selectedFile = fileInput.files[0];
+            const fileReader = new FileReader();
+
+            fileReader.onload = function(e) {
+                const fileContent = e.target.result;
+                let result;
+
+                if (fileConversionType === "hexadecimal") {
+                    result = convertToHex(fileContent);
+                } else if (fileConversionType === "decimal") {
+                    result = convertToDecimal(fileContent);
+                } else if (fileConversionType === "binary") {
+                    result = convertToBinary(fileContent);
+                }
+                // Add more file conversion
+                resultTextarea.value = `Converted result:\n\n${result}`;
+            };
+
+            fileReader.readAsText(selectedFile);
+        });
+
+        // Enable drag and drop functionality
+        const dropZone = document.getElementById("dropZone");
+
+        dropZone.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            dropZone.style.backgroundColor = "#007BFF";
+        });
+
+        dropZone.addEventListener("dragleave", function(e) {
+            e.preventDefault();
+            dropZone.style.backgroundColor = "";
+        });
+
+        dropZone.addEventListener("drop", function(e) {
+            e.preventDefault();
+            dropZone.style.backgroundColor = "";
+
+            const droppedFile = e.dataTransfer.files[0];
+
+            if (droppedFile) {
+                document.getElementById("fileInput").files = e.dataTransfer.files;
+                document.getElementById("importButton").textContent = droppedFile.name;
+            }
+        });
+
+        function convertToHex(input) {
+            let result = '';
+            for (let i = 0; i < input.length; i++) {
+                const hexChar = input.charCodeAt(i).toString(16).toUpperCase();
+                result += `0x${hexChar}, `;
+            }
+            return result;
+        }
+
+        function convertToDecimal(input) {
+            let result = '';
+            for (let i = 0; i < input.length; i++) {
+                const decimalChar = input.charCodeAt(i).toString(10);
+                result += `${decimalChar}, `;
+            }
+            return result;
+        }
+
+        function convertToBinary(input) {
+            let result = '';
+            for (let i = 0; i < input.length; i++) {
+                const binaryChar = input.charCodeAt(i).toString(2);
+                result += `${binaryChar}, `;
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
